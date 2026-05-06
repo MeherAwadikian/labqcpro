@@ -1,5 +1,5 @@
 import { createMiddleware } from 'hono/factory'
-import { verify } from 'jose'
+import { jwtVerify } from 'jose'
 
 export interface JWTPayload {
   sub: string       // user id
@@ -21,7 +21,7 @@ export const authMiddleware = createMiddleware<{
 
   try {
     const secret = new TextEncoder().encode(c.env.JWT_SECRET)
-    const { payload } = await verify(token, secret)
+    const { payload } = await jwtVerify(token, secret)
     c.set('user', payload as unknown as JWTPayload)
     await next()
   } catch {

@@ -1,7 +1,24 @@
-import Anthropic from '@anthropic-ai/sdk'
+const CLAUDE_API = 'https://api.anthropic.com/v1/messages'
+const MODEL = 'claude-sonnet-4-6'
 
-export function getAnthropicClient(apiKey: string) {
-  return new Anthropic({ apiKey })
+async function callClaude(
+  apiKey: string,
+  system: string,
+  messages: { role: string; content: any }[],
+  maxTokens = 2048
+): Promise<string> {
+  const res = await fetch(CLAUDE_API, {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages }),
+  })
+  if (!res.ok) throw new Error(`Claude API error: ${res.status}`)
+  const data = await res.json() as any
+  return data.content[0].text
 }
 
 export const MANUAL_SYSTEM_PROMPT = `You are a laboratory QC expert. Analyze this instrument/method manual and extract:
@@ -15,58 +32,52 @@ export const MANUAL_SYSTEM_PROMPT = `You are a laboratory QC expert. Analyze thi
 
 Return ONLY valid JSON in this exact structure:
 {
+  "summary": "Brief description of the instrument/method",
   "amr": [{"parameter": "string", "lower": number, "upper": number, "unit": "string"}],
   "tea": [{"parameter": "string", "value": number, "unit": "string"}],
   "cv_limits": [{"parameter": "string", "value": number}],
   "carryover_limits": [{"parameter": "string", "value": number}],
   "calibration_frequency": "string",
   "qc_frequency": "string",
-  "critical_limits": [{"parameter": "string", "low": number, "high": number, "unit": "string"}]
+  "critical_limits": [{"parameter": "string", "low": number, "high": number, "unit": "string"}],
+  "key_procedures": ["string"],
+  "analytes_mentioned": ["string"],
+  "extracted_ranges": [{"parameter": "string", "lower": number, "upper": number, "unit": "string"}]
 }`
 
-export async function analyzeManual(client: Anthropic, pdfBase64: string): Promise<string> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20251001',
-    max_tokens: 4096,
-    system: MANUAL_SYSTEM_PROMPT,
-    messages: [
-      {
-        role: 'user',
-        content: [
-          {
-            type: 'document',
-            source: {
-              type: 'base64',
-              media_type: 'application/pdf',
-              data: pdfBase64,
-            },
-          },
-          { type: 'text', text: 'Extract all QC parameters from this manual and return as JSON.' },
-        ],
-      },
-    ],
-  })
-
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
-  return text
+export async function analyzeManual(pdfBase64: string, filename: string, apiKey: string): Promise<any> {
+  const text = await callClaude(
+    apiKey,
+    MANUAL_SYSTEM_PROMPT,
+    [{
+      role: 'user',
+      content: [
+        {
+          type: 'document',
+          source: { type: 'base64', media_type: 'application/pdf', data: pdfBase64 },
+        },
+        { type: 'text', text: `Extract all QC parameters from this manual (${filename}) and return as JSON.` },
+      ],
+    }],
+    4096
+  )
+  try { return JSON.parse(text) } catch { return { summary: text, extracted_ranges: [], key_procedures: [], analytes_mentioned: [] } }
 }
 
 export async function chatWithLabData(
-  client: Anthropic,
   userMessage: string,
-  labContext: string
+  labContext: object,
+  apiKey: string
 ): Promise<string> {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20251001',
-    max_tokens: 1024,
-    system: `You are an expert laboratory QC advisor for a medical laboratory.
+  return callClaude(
+    apiKey,
+    `You are an expert laboratory QC advisor for a medical laboratory.
 You have access to the following lab data:
-${labContext}
+${JSON.stringify(labContext, null, 2)}
 
 Provide clear, actionable advice about QC performance, Westgard violations, and corrective actions.
 Keep responses concise and clinically relevant.`,
-    messages: [{ role: 'user', content: userMessage }],
-  })
-
-  return response.content[0].type === 'text' ? response.content[0].text : ''
+    [{ role: 'user', content: userMessage }],
+    1024
+  )
 }
