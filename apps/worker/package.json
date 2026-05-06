@@ -1,0 +1,24 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.4.0",
+    "@hono/zod-validator": "^0.2.2",
+    "hono-rate-limiter": "^0.4.0",
+    "@anthropic-ai/sdk": "^0.27.0",
+    "zod": "^3.23.8",
+    "jose": "^5.6.3",
+    "@labqcpro/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "wrangler": "^3.60.0",
+    "@cloudflare/workers-types": "^4.20240718.0",
+    "typescript": "^5.5.0"
+  }
+}

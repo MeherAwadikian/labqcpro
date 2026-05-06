@@ -1,0 +1,26 @@
+name = "labqcpro-worker"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "labqcpro-db"
+database_id = "placeholder-replace-after-create"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "labqcpro-files"
+
+[vars]
+CORS_ORIGIN = "https://labqcpro.pages.dev"
+
+[triggers]
+crons = ["0 6 * * 1"]
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# JWT_SECRET
+# ANTHROPIC_API_KEY
+# NOWPAYMENTS_API_KEY
+# NOWPAYMENTS_IPN_SECRET
+# RESEND_API_KEY
