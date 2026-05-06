@@ -14,10 +14,7 @@ CORS_ORIGIN = "https://labqcpro.pages.dev"
 [triggers]
 crons = ["0 6 * * 1"]
 
-# R2 bucket — uncomment after enabling R2 in Cloudflare Dashboard
+# Uncomment after enabling R2 in Cloudflare Dashboard:
 # [[r2_buckets]]
 # binding = "R2"
 # bucket_name = "labqcpro-files"
-
-# Secrets set via: wrangler secret put SECRET_NAME
-# JWT_SECRET, ANTHROPIC_API_KEY, NOWPAYMENTS_API_KEY, NOWPAYMENTS_IPN_SECRET, RESEND_API_KEY
