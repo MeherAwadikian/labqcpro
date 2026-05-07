@@ -29,6 +29,9 @@ import NewInstrument        from './pages/validation/NewInstrument'
 import MethodComparison     from './pages/validation/MethodComparison'
 import ValidationAi         from './pages/validation/ValidationAi'
 
+// Reference Lab pages
+import ReferenceSearch from './pages/reference-lab/Search'
+
 // IQCP pages
 import IQCPRisk from './pages/iqcp/Risk'
 import IQCPPlans from './pages/iqcp/Plans'
@@ -62,6 +65,12 @@ export default function App() {
         <Route path="education"    element={<Education />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="settings"     element={<Settings />} />
+
+        {/* Reference Lab */}
+        <Route path="reference-lab">
+          <Route index element={<ReferenceSearch />} />
+          <Route path="search" element={<ReferenceSearch />} />
+        </Route>
 
         {/* Performance & EQC */}
         <Route path="performance">

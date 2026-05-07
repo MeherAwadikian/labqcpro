@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#111827"/>
+  <!-- Purple glow circle -->
+  <circle cx="256" cy="256" r="200" fill="#7C3AED" opacity="0.12"/>
+  <!-- Flask body -->
+  <path d="M196 140 L196 248 L128 364 Q112 396 140 408 L372 408 Q400 396 384 364 L316 248 L316 140 Z"
+        fill="#1F2937" stroke="#7C3AED" stroke-width="14" stroke-linejoin="round"/>
+  <!-- Flask neck top bar -->
+  <rect x="186" y="124" width="140" height="20" rx="10" fill="#7C3AED"/>
+  <!-- Liquid inside flask -->
+  <path d="M148 364 Q134 390 156 400 L356 400 Q378 390 364 364 L300 260 L212 260 Z"
+        fill="#7C3AED" opacity="0.35"/>
+  <!-- QC chart line in liquid -->
+  <polyline points="172,360 210,330 240,348 272,308 310,328 340,310"
+            fill="none" stroke="#10B981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Plus / cross mark (medical) top right -->
+  <rect x="350" y="100" width="40" height="12" rx="6" fill="#7C3AED"/>
+  <rect x="369" y="81" width="12" height="40" rx="6" fill="#7C3AED"/>
+</svg>

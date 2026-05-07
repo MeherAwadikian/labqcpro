@@ -25,6 +25,9 @@ import validationAiRoutes    from './routes/validation-ai'
 // Settings & admin routes
 import settingsRoutes        from './routes/settings'
 
+// Reference Lab routes
+import referenceLabRoutes from './routes/reference-lab/search'
+
 // Performance & EQC routes
 import performanceCarryoverRoutes from './routes/performance/carryover'
 import performancePrecisionRoutes from './routes/performance/precision'
@@ -79,6 +82,9 @@ app.route('/validation/ai',    validationAiRoutes)
 
 // Settings routes
 app.route('/settings',         settingsRoutes)
+
+// Reference Lab routes
+app.route('/reference-lab', referenceLabRoutes)
 
 // Performance & EQC routes
 app.route('/performance/carryover', performanceCarryoverRoutes)

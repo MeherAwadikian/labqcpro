@@ -1,34 +1,88 @@
 import { Hono } from 'hono'
-import { authMiddleware } from '../middleware/auth'
+import { authMiddleware, type JWTPayload } from '../middleware/auth'
 
-type Bindings = {
-  DB: D1Database
-  NOWPAYMENTS_API_KEY: string
-  NOWPAYMENTS_IPN_SECRET: string
-  CORS_ORIGIN: string
-}
+type Bindings = { DB: D1Database }
+type Variables = { user: JWTPayload }
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const WALLET        = '0xc7D81F5992cb570e7487DD78b22A3eB53a438d6e'
+const USDT_CONTRACT = '0xdac17f958d2ee523a2206206994597c13d831ec7' // ERC-20 Ethereum mainnet
+const TRANSFER_TOPIC = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const ETH_RPC       = 'https://cloudflare-eth.com/'
+// Wallet padded to 32 bytes as it appears in Transfer event topics
+const WALLET_TOPIC  = '0x000000000000000000000000' + WALLET.slice(2).toLowerCase()
 
 const PLANS = {
-  monthly: { amount: 29, currency: 'usd', days: 30 },
-  yearly:  { amount: 249, currency: 'usd', days: 365 },
+  monthly: { amount_usdt: 29,  days: 30,  label: 'Monthly' },
+  yearly:  { amount_usdt: 249, days: 365, label: 'Yearly'  },
 } as const
 
-const app = new Hono<{ Bindings: Bindings }>()
+type PlanKey = keyof typeof PLANS
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+async function ethRpc(method: string, params: unknown[]) {
+  const res = await fetch(ETH_RPC, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  })
+  const json = await res.json() as { result?: any; error?: { message: string } }
+  if (json.error) throw new Error(`RPC: ${json.error.message}`)
+  return json.result
+}
+
+async function verifyUSDTPayment(txHash: string, minUsdt: number) {
+  const receipt = await ethRpc('eth_getTransactionReceipt', [txHash])
+
+  if (!receipt) {
+    throw new Error('Transaction not found. It may still be pending — wait for at least 6 confirmations.')
+  }
+  if (receipt.status !== '0x1') {
+    throw new Error('Transaction failed on-chain (status 0x0). No funds were transferred.')
+  }
+
+  const logs: any[] = receipt.logs ?? []
+  const log = logs.find(l =>
+    l.address?.toLowerCase() === USDT_CONTRACT &&
+    l.topics?.[0] === TRANSFER_TOPIC &&
+    l.topics?.[2]?.toLowerCase() === WALLET_TOPIC
+  )
+
+  if (!log) {
+    throw new Error(
+      'No USDT (ERC-20) transfer to the payment address found in this transaction. ' +
+      'Make sure you sent USDT on the Ethereum mainnet (not BNB, Polygon, or Tron).'
+    )
+  }
+
+  // USDT has 6 decimals
+  const amountUnits = BigInt(log.data)
+  const amountUsdt  = Number(amountUnits) / 1_000_000
+
+  if (amountUsdt < minUsdt - 0.01) { // allow 1 cent tolerance for rounding
+    throw new Error(
+      `Amount too low: ${amountUsdt.toFixed(2)} USDT received, ${minUsdt} USDT required.`
+    )
+  }
+
+  return { amount_usdt: amountUsdt }
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 app.use('*', authMiddleware)
 
 // GET /subscription/status
 app.get('/status', async (c) => {
-  const user = c.get('user')
+  const { lab_id } = c.get('user')
   const sub = await c.env.DB.prepare(
     'SELECT * FROM subscriptions WHERE lab_id = ?'
-  ).bind(user.lab_id).first<{
-    status: string; trial_end: string; paid_until: string | null; updated_at: string
-  }>()
+  ).bind(lab_id).first<{ status: string; trial_end: string; paid_until: string | null; updated_at: string }>()
 
-  if (!sub) return c.json({ error: 'No subscription' }, 404)
+  if (!sub) return c.json({ error: 'No subscription record' }, 404)
 
-  const now = new Date()
-  const trialEnd = new Date(sub.trial_end)
+  const now       = new Date()
+  const trialEnd  = new Date(sub.trial_end)
   const paidUntil = sub.paid_until ? new Date(sub.paid_until) : null
 
   const daysLeft = paidUntil
@@ -37,133 +91,101 @@ app.get('/status', async (c) => {
     ? Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / 86400000))
     : 0
 
+  const is_active =
+    sub.status === 'active' ||
+    (sub.status === 'trial' && now < trialEnd) ||
+    (paidUntil != null && now < paidUntil)
+
+  return c.json({ data: { ...sub, days_left: daysLeft, is_active } })
+})
+
+// GET /subscription/info — plan info + wallet address (public, no secret)
+app.get('/info', async (c) => {
   return c.json({
-    data: {
-      ...sub,
-      days_left: daysLeft,
-      is_active:
-        sub.status === 'active' ||
-        (sub.status === 'trial' && now < trialEnd) ||
-        (paidUntil && now < paidUntil),
-    },
+    wallet: WALLET,
+    network: 'Ethereum Mainnet',
+    token: 'USDT (ERC-20)',
+    contract: USDT_CONTRACT,
+    plans: Object.entries(PLANS).map(([key, p]) => ({
+      key, label: p.label, amount_usdt: p.amount_usdt, days: p.days,
+    })),
   })
 })
 
-// POST /subscription/create-payment
-app.post('/create-payment', async (c) => {
-  const user = c.get('user')
-  const { plan, pay_currency = 'btc' } = await c.req.json()
+// POST /subscription/verify-payment
+app.post('/verify-payment', async (c) => {
+  const { lab_id } = c.get('user')
+  const body = await c.req.json<{ plan: string; tx_hash: string }>()
 
-  if (!(plan in PLANS)) return c.json({ error: 'Invalid plan' }, 400)
+  const planKey = body.plan as PlanKey
+  if (!(planKey in PLANS)) return c.json({ error: 'Invalid plan. Choose monthly or yearly.' }, 400)
 
-  const { amount, currency } = PLANS[plan as keyof typeof PLANS]
-
-  const callbackUrl = `${c.env.CORS_ORIGIN.replace('https://', 'https://worker.')}/subscription/ipn`
-
-  const response = await fetch('https://api.nowpayments.io/v1/payment', {
-    method: 'POST',
-    headers: {
-      'x-api-key': c.env.NOWPAYMENTS_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      price_amount: amount,
-      price_currency: currency,
-      pay_currency,
-      order_id: `${user.lab_id}__${plan}__${Date.now()}`,
-      order_description: `LabQC Pro ${plan} subscription`,
-      ipn_callback_url: callbackUrl,
-    }),
-  })
-
-  if (!response.ok) {
-    const err = await response.text()
-    return c.json({ error: 'Payment creation failed', detail: err }, 502)
+  const txHash = (body.tx_hash ?? '').trim().toLowerCase()
+  if (!/^0x[0-9a-f]{64}$/.test(txHash)) {
+    return c.json({ error: 'Invalid transaction hash format. Must be 0x followed by 64 hex characters.' }, 400)
   }
 
-  const payment = await response.json() as {
-    payment_id: string
-    pay_address: string
-    pay_amount: number
-    pay_currency: string
-    payment_status: string
+  // Prevent reuse of same TX hash
+  const existing = await c.env.DB.prepare(
+    'SELECT id FROM payment_records WHERE tx_hash = ?'
+  ).bind(txHash).first()
+  if (existing) {
+    return c.json({ error: 'This transaction has already been used to activate a subscription.' }, 409)
   }
 
-  // Store pending payment record
-  const now = new Date().toISOString()
-  await c.env.DB.prepare(
-    `INSERT INTO payment_records (id, lab_id, nowpayments_id, plan, amount_usd, status, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(
-    crypto.randomUUID(), user.lab_id, payment.payment_id,
-    plan, amount, 'pending', now
-  ).run()
+  const plan = PLANS[planKey]
+  let amount_usdt: number
 
-  return c.json({ data: payment })
-})
-
-// POST /subscription/ipn — NOWPayments webhook
-app.post('/ipn', async (c) => {
-  const body = await c.req.text()
-  const sig = c.req.header('x-nowpayments-sig')
-
-  // Verify HMAC signature
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(c.env.NOWPAYMENTS_IPN_SECRET)
-  const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-512' }, false, ['sign'])
-  const sigBytes = await crypto.subtle.sign('HMAC', key, encoder.encode(body))
-  const computed = Array.from(new Uint8Array(sigBytes)).map(b => b.toString(16).padStart(2, '0')).join('')
-
-  if (computed !== sig) {
-    return c.json({ error: 'Invalid signature' }, 403)
+  try {
+    const result = await verifyUSDTPayment(txHash, plan.amount_usdt)
+    amount_usdt = result.amount_usdt
+  } catch (e: any) {
+    return c.json({ error: e.message }, 400)
   }
-
-  const data = JSON.parse(body) as {
-    payment_id: string
-    payment_status: string
-    order_id: string
-    price_amount: number
-  }
-
-  // Extract lab_id and plan from order_id
-  const [labId, plan] = data.order_id.split('__')
-  if (!labId || !plan) return c.json({ ok: true })
 
   const now = new Date().toISOString()
 
-  // Update payment record
-  await c.env.DB.prepare(
-    'UPDATE payment_records SET status = ?, updated_at = ? WHERE nowpayments_id = ?'
-  ).bind(data.payment_status, now, data.payment_id).run()
+  // Determine new paid_until (extend if already active)
+  const currentSub = await c.env.DB.prepare(
+    'SELECT paid_until FROM subscriptions WHERE lab_id = ?'
+  ).bind(lab_id).first<{ paid_until: string | null }>()
 
-  if (data.payment_status === 'finished' || data.payment_status === 'confirmed') {
-    const days = PLANS[plan as keyof typeof PLANS]?.days ?? 30
+  const base = currentSub?.paid_until && new Date(currentSub.paid_until) > new Date()
+    ? new Date(currentSub.paid_until)
+    : new Date()
 
-    // Extend paid_until
-    const existing = await c.env.DB.prepare(
-      'SELECT paid_until FROM subscriptions WHERE lab_id = ?'
-    ).bind(labId).first<{ paid_until: string | null }>()
+  const newPaidUntil = new Date(base.getTime() + plan.days * 86400000).toISOString()
 
-    const base = existing?.paid_until && new Date(existing.paid_until) > new Date()
-      ? new Date(existing.paid_until)
-      : new Date()
-
-    const newPaidUntil = new Date(base.getTime() + days * 86400000).toISOString()
-
-    await c.env.DB.prepare(
+  await c.env.DB.batch([
+    // Record payment
+    c.env.DB.prepare(
+      `INSERT INTO payment_records (id, lab_id, plan, amount_usd, amount_usdt, tx_hash, network, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'ethereum', 'confirmed', ?, ?)`
+    ).bind(
+      crypto.randomUUID(), lab_id, planKey,
+      plan.amount_usdt, amount_usdt, txHash, now, now
+    ),
+    // Activate subscription
+    c.env.DB.prepare(
       `UPDATE subscriptions SET status = 'active', paid_until = ?, updated_at = ? WHERE lab_id = ?`
-    ).bind(newPaidUntil, now, labId).run()
-  }
+    ).bind(newPaidUntil, now, lab_id),
+  ])
 
-  return c.json({ ok: true })
+  return c.json({
+    ok: true,
+    plan: plan.label,
+    amount_usdt,
+    paid_until: newPaidUntil,
+    days_added: plan.days,
+  })
 })
 
-// GET /subscription/payments — payment history
+// GET /subscription/payments — history
 app.get('/payments', async (c) => {
-  const user = c.get('user')
+  const { lab_id } = c.get('user')
   const { results } = await c.env.DB.prepare(
-    'SELECT * FROM payment_records WHERE lab_id = ? ORDER BY created_at DESC'
-  ).bind(user.lab_id).all()
+    'SELECT id, plan, amount_usdt, tx_hash, status, created_at FROM payment_records WHERE lab_id = ? ORDER BY created_at DESC'
+  ).bind(lab_id).all()
   return c.json({ data: results })
 })
 

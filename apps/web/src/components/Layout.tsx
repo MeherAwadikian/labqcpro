@@ -7,6 +7,7 @@ import {
   LogOut, Menu, X, ShieldCheck, Settings, Gauge,
   ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot,
   Microscope, Activity, ArrowLeftRight, Droplets, Target, Users,
+  FlaskRound,
 } from 'lucide-react'
 
 const mainNav = [
@@ -31,6 +32,10 @@ const iqcpNav = [
   { to: '/iqcp/ai',          icon: Bot,             label: 'AI Intelligence' },
 ]
 
+const referenceLabNav = [
+  { to: '/reference-lab/search', icon: FlaskRound, label: 'RI Search Engine' },
+]
+
 const performanceNav = [
   { to: '/performance',            icon: LayoutDashboard, label: 'Overview' },
   { to: '/performance/carryover',  icon: Droplets,        label: 'Carryover' },
@@ -53,6 +58,7 @@ export default function Layout() {
   const [iqcpOpen, setIqcpOpen]                 = useState(false)
   const [validationOpen, setValidationOpen]     = useState(false)
   const [performanceOpen, setPerformanceOpen]   = useState(false)
+  const [referenceOpen, setReferenceOpen]       = useState(false)
   const { logout, role } = useAuthStore()
   const navigate = useNavigate()
 
@@ -173,6 +179,36 @@ export default function Layout() {
             `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${
               isActive
                 ? 'bg-orange-600/20 text-orange-400'
+                : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
+            }`
+          }
+        >
+          <item.icon size={16} />
+          {item.label}
+        </NavLink>
+      ))}
+
+      <div className="my-2 border-t border-gray-800" />
+
+      {/* Reference Lab section */}
+      <button
+        onClick={() => setReferenceOpen(o => !o)}
+        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors w-full"
+      >
+        <FlaskRound size={16} className="text-teal-400" />
+        <span className="flex-1 text-left text-teal-300">Reference Lab</span>
+        {referenceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+      </button>
+
+      {referenceOpen && referenceLabNav.map(item => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          onClick={() => setSidebarOpen(false)}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${
+              isActive
+                ? 'bg-teal-600/20 text-teal-400'
                 : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
             }`
           }
