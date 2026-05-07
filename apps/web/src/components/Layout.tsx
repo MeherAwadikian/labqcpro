@@ -7,7 +7,7 @@ import {
   LogOut, Menu, X, ShieldCheck, Settings, Gauge,
   ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot,
   Microscope, Activity, ArrowLeftRight, Droplets, Target, Users,
-  FlaskRound,
+  FlaskRound, Search, GitBranch, Sigma,
 } from 'lucide-react'
 
 const mainNav = [
@@ -33,7 +33,14 @@ const iqcpNav = [
 ]
 
 const referenceLabNav = [
-  { to: '/reference-lab/search', icon: FlaskRound, label: 'RI Search Engine' },
+  { to: '/reference-lab',              icon: LayoutDashboard, label: 'Dashboard',          end: true },
+  { to: '/reference-lab/search',       icon: Search,          label: 'RI Search Engine',   end: false },
+  { to: '/reference-lab/direct',       icon: FlaskRound,      label: 'Direct RI Study',    end: false },
+  { to: '/reference-lab/transference', icon: ArrowLeftRight,  label: 'Transference',       end: false },
+  { to: '/reference-lab/indirect',     icon: GitBranch,       label: 'Indirect Method',    end: false },
+  { to: '/reference-lab/qc-ranges',    icon: BarChart3,       label: 'QC Ranges from RI',  end: false },
+  { to: '/reference-lab/stratification', icon: Users,         label: 'Stratification',     end: false },
+  { to: '/reference-lab/calculators',  icon: Sigma,           label: 'Calculators',        end: false },
 ]
 
 const performanceNav = [
@@ -204,6 +211,7 @@ export default function Layout() {
         <NavLink
           key={item.to}
           to={item.to}
+          end={item.end}
           onClick={() => setSidebarOpen(false)}
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${

@@ -26,7 +26,9 @@ import validationAiRoutes    from './routes/validation-ai'
 import settingsRoutes        from './routes/settings'
 
 // Reference Lab routes
-import referenceLabRoutes from './routes/reference-lab/search'
+import referenceLabRoutes       from './routes/reference-lab/search'
+import referenceLabDirectRoutes from './routes/reference-lab/direct'
+import referenceLabTransRoutes  from './routes/reference-lab/transference'
 
 // Performance & EQC routes
 import performanceCarryoverRoutes from './routes/performance/carryover'
@@ -85,6 +87,8 @@ app.route('/settings',         settingsRoutes)
 
 // Reference Lab routes
 app.route('/reference-lab', referenceLabRoutes)
+app.route('/reference-lab/direct',       referenceLabDirectRoutes)
+app.route('/reference-lab/transference', referenceLabTransRoutes)
 
 // Performance & EQC routes
 app.route('/performance/carryover', performanceCarryoverRoutes)

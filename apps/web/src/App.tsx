@@ -30,7 +30,14 @@ import MethodComparison     from './pages/validation/MethodComparison'
 import ValidationAi         from './pages/validation/ValidationAi'
 
 // Reference Lab pages
-import ReferenceSearch from './pages/reference-lab/Search'
+import ReferenceSearch      from './pages/reference-lab/Search'
+import RefLabDashboard      from './pages/reference-lab/Dashboard'
+import DirectRI             from './pages/reference-lab/DirectRI'
+import Transference         from './pages/reference-lab/Transference'
+import Indirect             from './pages/reference-lab/Indirect'
+import QCRanges             from './pages/reference-lab/QCRanges'
+import Stratification       from './pages/reference-lab/Stratification'
+import Calculators          from './pages/reference-lab/Calculators'
 
 // IQCP pages
 import IQCPRisk from './pages/iqcp/Risk'
@@ -68,8 +75,16 @@ export default function App() {
 
         {/* Reference Lab */}
         <Route path="reference-lab">
-          <Route index element={<ReferenceSearch />} />
-          <Route path="search" element={<ReferenceSearch />} />
+          <Route index element={<RefLabDashboard />} />
+          <Route path="search"             element={<ReferenceSearch />} />
+          <Route path="direct"             element={<DirectRI />} />
+          <Route path="direct/:id"         element={<DirectRI />} />
+          <Route path="transference"       element={<Transference />} />
+          <Route path="transference/:id"   element={<Transference />} />
+          <Route path="indirect"           element={<Indirect />} />
+          <Route path="qc-ranges"          element={<QCRanges />} />
+          <Route path="stratification"     element={<Stratification />} />
+          <Route path="calculators"        element={<Calculators />} />
         </Route>
 
         {/* Performance & EQC */}
