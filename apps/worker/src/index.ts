@@ -25,6 +25,12 @@ import validationAiRoutes    from './routes/validation-ai'
 // Settings & admin routes
 import settingsRoutes        from './routes/settings'
 
+// Performance & EQC routes
+import performanceCarryoverRoutes from './routes/performance/carryover'
+import performancePrecisionRoutes from './routes/performance/precision'
+import performancePtRoutes        from './routes/performance/pt'
+import performanceEqcRoutes       from './routes/performance/eqc'
+
 type Bindings = {
   DB: D1Database
   R2: R2Bucket
@@ -73,6 +79,12 @@ app.route('/validation/ai',    validationAiRoutes)
 
 // Settings routes
 app.route('/settings',         settingsRoutes)
+
+// Performance & EQC routes
+app.route('/performance/carryover', performanceCarryoverRoutes)
+app.route('/performance/precision', performancePrecisionRoutes)
+app.route('/performance/pt',        performancePtRoutes)
+app.route('/performance/eqc',       performanceEqcRoutes)
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404))
 app.onError((err, c) => {

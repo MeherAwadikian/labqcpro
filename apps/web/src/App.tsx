@@ -14,6 +14,13 @@ import Education from './pages/Education'
 import Subscription from './pages/Subscription'
 import Settings from './pages/Settings'
 
+// Performance pages
+import PerformanceDashboard   from './pages/performance/Dashboard'
+import Carryover              from './pages/performance/Carryover'
+import Precision              from './pages/performance/Precision'
+import ProficiencyTesting     from './pages/performance/ProficiencyTesting'
+import EQC                    from './pages/performance/EQC'
+
 // Validation pages
 import ValidationDashboard  from './pages/validation/Dashboard'
 import ReagentLot           from './pages/validation/ReagentLot'
@@ -55,6 +62,15 @@ export default function App() {
         <Route path="education"    element={<Education />} />
         <Route path="subscription" element={<Subscription />} />
         <Route path="settings"     element={<Settings />} />
+
+        {/* Performance & EQC */}
+        <Route path="performance">
+          <Route index element={<PerformanceDashboard />} />
+          <Route path="carryover" element={<Carryover />} />
+          <Route path="precision" element={<Precision />} />
+          <Route path="pt"        element={<ProficiencyTesting />} />
+          <Route path="eqc"       element={<EQC />} />
+        </Route>
 
         {/* Validation */}
         <Route path="validation">

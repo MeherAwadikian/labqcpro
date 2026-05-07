@@ -4,9 +4,9 @@ import { useAuthStore } from '../store/auth'
 import {
   LayoutDashboard, FlaskConical, ClipboardList, BarChart3, Calculator,
   FileText, Brain, BookOpen, CreditCard, ChevronDown, ChevronRight,
-  LogOut, Menu, X, ShieldCheck, Settings,
+  LogOut, Menu, X, ShieldCheck, Settings, Gauge,
   ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot,
-  Microscope, Activity, ArrowLeftRight,
+  Microscope, Activity, ArrowLeftRight, Droplets, Target, Users,
 } from 'lucide-react'
 
 const mainNav = [
@@ -31,6 +31,14 @@ const iqcpNav = [
   { to: '/iqcp/ai',          icon: Bot,             label: 'AI Intelligence' },
 ]
 
+const performanceNav = [
+  { to: '/performance',            icon: LayoutDashboard, label: 'Overview' },
+  { to: '/performance/carryover',  icon: Droplets,        label: 'Carryover' },
+  { to: '/performance/precision',  icon: Target,          label: 'Precision Testing' },
+  { to: '/performance/pt',         icon: ClipboardCheck,  label: 'Proficiency Testing' },
+  { to: '/performance/eqc',        icon: Users,           label: 'Peer Comparison' },
+]
+
 const validationNav = [
   { to: '/validation',                 icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/validation/reagent-lot',     icon: TestTube2,       label: 'Reagent Lot' },
@@ -41,9 +49,10 @@ const validationNav = [
 ]
 
 export default function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [iqcpOpen, setIqcpOpen]       = useState(false)
-  const [validationOpen, setValidationOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen]           = useState(false)
+  const [iqcpOpen, setIqcpOpen]                 = useState(false)
+  const [validationOpen, setValidationOpen]     = useState(false)
+  const [performanceOpen, setPerformanceOpen]   = useState(false)
   const { logout, role } = useAuthStore()
   const navigate = useNavigate()
 
@@ -133,6 +142,37 @@ export default function Layout() {
             `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${
               isActive
                 ? 'bg-blue-600/20 text-blue-400'
+                : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
+            }`
+          }
+        >
+          <item.icon size={16} />
+          {item.label}
+        </NavLink>
+      ))}
+
+      <div className="my-2 border-t border-gray-800" />
+
+      {/* Performance & EQC section */}
+      <button
+        onClick={() => setPerformanceOpen(o => !o)}
+        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors w-full"
+      >
+        <Gauge size={16} className="text-orange-400" />
+        <span className="flex-1 text-left text-orange-300">Performance & EQC</span>
+        {performanceOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+      </button>
+
+      {performanceOpen && performanceNav.map(item => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === '/performance'}
+          onClick={() => setSidebarOpen(false)}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${
+              isActive
+                ? 'bg-orange-600/20 text-orange-400'
                 : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
             }`
           }
