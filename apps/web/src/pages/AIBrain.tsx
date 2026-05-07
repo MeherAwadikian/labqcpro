@@ -1,7 +1,34 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { Card, Button, PageHeader, Spinner, Badge } from '../components/ui'
-import { Send, Upload, Trash2, FileText, Brain } from 'lucide-react'
+import { Send, Upload, Trash2, FileText, Brain, ExternalLink } from 'lucide-react'
+
+const AI_LINKS = [
+  {
+    name: 'Claude',
+    color: 'text-orange-300',
+    bg: 'bg-orange-900/20 border-orange-800 hover:bg-orange-900/40',
+    url: (q: string) => `https://claude.ai/new${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+  },
+  {
+    name: 'ChatGPT',
+    color: 'text-green-300',
+    bg: 'bg-green-900/20 border-green-800 hover:bg-green-900/40',
+    url: (q: string) => `https://chatgpt.com/${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+  },
+  {
+    name: 'Gemini',
+    color: 'text-blue-300',
+    bg: 'bg-blue-900/20 border-blue-800 hover:bg-blue-900/40',
+    url: (q: string) => `https://gemini.google.com/app${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+  },
+  {
+    name: 'Perplexity',
+    color: 'text-cyan-300',
+    bg: 'bg-cyan-900/20 border-cyan-800 hover:bg-cyan-900/40',
+    url: (q: string) => `https://www.perplexity.ai/${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+  },
+]
 
 interface Manual { id: string; filename: string; size_bytes: number; uploaded_at: string }
 interface Message { role: 'user' | 'assistant'; content: string }
@@ -126,6 +153,28 @@ export default function AIBrain() {
                   className="w-full text-left text-xs text-gray-400 hover:text-brand-300 hover:bg-gray-800/50 px-2 py-1.5 rounded transition-colors">
                   {q}
                 </button>
+              ))}
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="font-semibold text-white text-sm mb-1 flex items-center gap-2">
+              <ExternalLink size={14} className="text-gray-400" />
+              Open in External AI
+            </h3>
+            <p className="text-xs text-gray-500 mb-3">Type a question above, then launch it directly in any AI — no API key required.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {AI_LINKS.map(ai => (
+                <a
+                  key={ai.name}
+                  href={ai.url(input)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${ai.bg} ${ai.color}`}
+                >
+                  <ExternalLink size={11} />
+                  {ai.name}
+                </a>
               ))}
             </div>
           </Card>
