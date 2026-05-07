@@ -13,6 +13,14 @@ import AIBrain from './pages/AIBrain'
 import Education from './pages/Education'
 import Subscription from './pages/Subscription'
 
+// Validation pages
+import ValidationDashboard  from './pages/validation/Dashboard'
+import ReagentLot           from './pages/validation/ReagentLot'
+import CalibratorLot        from './pages/validation/CalibratorLot'
+import NewInstrument        from './pages/validation/NewInstrument'
+import MethodComparison     from './pages/validation/MethodComparison'
+import ValidationAi         from './pages/validation/ValidationAi'
+
 // IQCP pages
 import IQCPRisk from './pages/iqcp/Risk'
 import IQCPPlans from './pages/iqcp/Plans'
@@ -45,6 +53,16 @@ export default function App() {
         <Route path="ai"           element={<AIBrain />} />
         <Route path="education"    element={<Education />} />
         <Route path="subscription" element={<Subscription />} />
+
+        {/* Validation */}
+        <Route path="validation">
+          <Route index element={<ValidationDashboard />} />
+          <Route path="reagent-lot"       element={<ReagentLot />} />
+          <Route path="calibrator-lot"    element={<CalibratorLot />} />
+          <Route path="new-instrument"    element={<NewInstrument />} />
+          <Route path="method-comparison" element={<MethodComparison />} />
+          <Route path="ai"                element={<ValidationAi />} />
+        </Route>
 
         {/* IQCP */}
         <Route path="iqcp">

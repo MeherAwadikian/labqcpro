@@ -5,7 +5,8 @@ import {
   LayoutDashboard, FlaskConical, ClipboardList, BarChart3, Calculator,
   FileText, Brain, BookOpen, CreditCard, ChevronDown, ChevronRight,
   LogOut, Menu, X, ShieldCheck,
-  ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot
+  ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot,
+  Microscope, Activity, ArrowLeftRight,
 } from 'lucide-react'
 
 const mainNav = [
@@ -30,9 +31,19 @@ const iqcpNav = [
   { to: '/iqcp/ai',          icon: Bot,             label: 'AI Intelligence' },
 ]
 
+const validationNav = [
+  { to: '/validation',                 icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/validation/reagent-lot',     icon: TestTube2,       label: 'Reagent Lot' },
+  { to: '/validation/calibrator-lot',  icon: Pipette,         label: 'Calibrator Lot' },
+  { to: '/validation/new-instrument',  icon: Activity,        label: 'New Instrument' },
+  { to: '/validation/method-comparison', icon: ArrowLeftRight, label: 'Method Comparison' },
+  { to: '/validation/ai',              icon: Bot,             label: 'AI Brain' },
+]
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [iqcpOpen, setIqcpOpen] = useState(false)
+  const [iqcpOpen, setIqcpOpen]       = useState(false)
+  const [validationOpen, setValidationOpen] = useState(false)
   const { logout, role } = useAuthStore()
   const navigate = useNavigate()
 
@@ -99,6 +110,37 @@ export default function Layout() {
       </button>
 
       {iqcpOpen && iqcpNav.map(item => <IQCPNavItem key={item.to} {...item} />)}
+
+      <div className="my-2 border-t border-gray-800" />
+
+      {/* Validation section */}
+      <button
+        onClick={() => setValidationOpen(o => !o)}
+        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-100 hover:bg-gray-800 transition-colors w-full"
+      >
+        <Microscope size={16} className="text-blue-400" />
+        <span className="flex-1 text-left text-blue-300">Validation Studies</span>
+        {validationOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+      </button>
+
+      {validationOpen && validationNav.map(item => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === '/validation'}
+          onClick={() => setSidebarOpen(false)}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ml-2 ${
+              isActive
+                ? 'bg-blue-600/20 text-blue-400'
+                : 'text-gray-400 hover:text-gray-100 hover:bg-gray-800'
+            }`
+          }
+        >
+          <item.icon size={16} />
+          {item.label}
+        </NavLink>
+      ))}
 
       <div className="flex-1" />
 

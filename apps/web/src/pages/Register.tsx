@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/auth'
 import { api } from '../lib/api'
 import { FlaskConical } from 'lucide-react'
 
+const inputCls = "bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full"
+
 export default function Register() {
   const [form, setForm] = useState({ email: '', password: '', lab_name: '', country: '' })
   const [error, setError] = useState('')
@@ -11,7 +13,7 @@ export default function Register() {
   const setAuth = useAuthStore(s => s.setAuth)
   const navigate = useNavigate()
 
-  function set(field: string, value: string) {
+  function set(field: keyof typeof form, value: string) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
@@ -32,18 +34,6 @@ export default function Register() {
     }
   }
 
-  const Field = ({ label, field, type = 'text', placeholder }: any) => (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm text-gray-300">{label}</label>
-      <input
-        type={type} required value={form[field as keyof typeof form]}
-        onChange={e => set(field, e.target.value)}
-        placeholder={placeholder}
-        className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
-      />
-    </div>
-  )
-
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
@@ -61,10 +51,42 @@ export default function Register() {
               {error}
             </div>
           )}
-          <Field label="Lab Name"    field="lab_name"  placeholder="City General Hospital Lab" />
-          <Field label="Country"     field="country"   placeholder="United States" />
-          <Field label="Email"       field="email"     type="email"    placeholder="admin@lab.com" />
-          <Field label="Password"    field="password"  type="password" placeholder="Min 8 characters" />
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-gray-300">Lab Name</label>
+            <input
+              type="text" required className={inputCls}
+              placeholder="City General Hospital Lab"
+              value={form.lab_name}
+              onChange={e => set('lab_name', e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-gray-300">Country</label>
+            <input
+              type="text" required className={inputCls}
+              placeholder="United States"
+              value={form.country}
+              onChange={e => set('country', e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-gray-300">Email</label>
+            <input
+              type="email" required className={inputCls}
+              placeholder="admin@lab.com"
+              value={form.email}
+              onChange={e => set('email', e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm text-gray-300">Password</label>
+            <input
+              type="password" required className={inputCls}
+              placeholder="Min 8 characters"
+              value={form.password}
+              onChange={e => set('password', e.target.value)}
+            />
+          </div>
           <button
             type="submit" disabled={loading}
             className="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"

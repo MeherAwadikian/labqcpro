@@ -18,6 +18,10 @@ import iqcpExtensionRoutes   from './routes/iqcp/extensions'
 import iqcpCapRoutes         from './routes/iqcp/cap'
 import iqcpAiRoutes          from './routes/iqcp/ai'
 
+// Validation routes
+import validationRoutes      from './routes/validation'
+import validationAiRoutes    from './routes/validation-ai'
+
 type Bindings = {
   DB: D1Database
   R2: R2Bucket
@@ -59,6 +63,10 @@ app.route('/iqcp/calibrators', iqcpCalibratorRoutes)
 app.route('/iqcp/extensions',  iqcpExtensionRoutes)
 app.route('/iqcp/cap',         iqcpCapRoutes)
 app.route('/iqcp/ai',          iqcpAiRoutes)
+
+// Validation routes
+app.route('/validation',       validationRoutes)
+app.route('/validation/ai',    validationAiRoutes)
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404))
 app.onError((err, c) => {
