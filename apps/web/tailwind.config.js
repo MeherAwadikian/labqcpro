@@ -22,5 +22,13 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      addUtilities({
+        '.safe-area-bottom': {
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        },
+      })
+    },
+  ],
 }

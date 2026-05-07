@@ -1,6 +1,8 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuthStore } from '../store/auth'
+import BottomNav from './BottomNav'
+import InstallBanner from './InstallBanner'
 import {
   LayoutDashboard, FlaskConical, ClipboardList, BarChart3, Calculator,
   FileText, Brain, BookOpen, CreditCard, ChevronDown, ChevronRight,
@@ -282,10 +284,13 @@ export default function Layout() {
           <span className="font-semibold text-white">LabQC Pro</span>
         </header>
 
-        <main className="flex-1 overflow-auto bg-gray-950 p-4 lg:p-6">
+        <main className="flex-1 overflow-auto bg-gray-950 p-4 pb-20 lg:p-6 lg:pb-6">
           <Outlet />
         </main>
       </div>
+
+      <BottomNav onMenuOpen={() => setSidebarOpen(true)} />
+      <InstallBanner />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-const CACHE = 'labqcpro-v1'
+const CACHE = 'labqcpro-v2'
 
 // Cache the app shell on install
 self.addEventListener('install', event => {
