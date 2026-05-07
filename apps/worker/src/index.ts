@@ -22,6 +22,9 @@ import iqcpAiRoutes          from './routes/iqcp/ai'
 import validationRoutes      from './routes/validation'
 import validationAiRoutes    from './routes/validation-ai'
 
+// Settings & admin routes
+import settingsRoutes        from './routes/settings'
+
 type Bindings = {
   DB: D1Database
   R2: R2Bucket
@@ -67,6 +70,9 @@ app.route('/iqcp/ai',          iqcpAiRoutes)
 // Validation routes
 app.route('/validation',       validationRoutes)
 app.route('/validation/ai',    validationAiRoutes)
+
+// Settings routes
+app.route('/settings',         settingsRoutes)
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404))
 app.onError((err, c) => {

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/auth'
 import {
   LayoutDashboard, FlaskConical, ClipboardList, BarChart3, Calculator,
   FileText, Brain, BookOpen, CreditCard, ChevronDown, ChevronRight,
-  LogOut, Menu, X, ShieldCheck,
+  LogOut, Menu, X, ShieldCheck, Settings,
   ClipboardCheck, TestTube2, Pipette, Clock, Building2, Bot,
   Microscope, Activity, ArrowLeftRight,
 } from 'lucide-react'
@@ -145,7 +145,8 @@ export default function Layout() {
       <div className="flex-1" />
 
       <div className="border-t border-gray-800 pt-3">
-        <div className="px-3 py-1 text-xs text-gray-600 font-medium uppercase tracking-wide">
+        <NavItem to="/settings" icon={Settings} label="Settings" />
+        <div className="px-3 py-1 text-xs text-gray-600 font-medium uppercase tracking-wide mt-2">
           {role}
         </div>
         <button

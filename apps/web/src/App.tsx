@@ -12,6 +12,7 @@ import Reports from './pages/Reports'
 import AIBrain from './pages/AIBrain'
 import Education from './pages/Education'
 import Subscription from './pages/Subscription'
+import Settings from './pages/Settings'
 
 // Validation pages
 import ValidationDashboard  from './pages/validation/Dashboard'
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="ai"           element={<AIBrain />} />
         <Route path="education"    element={<Education />} />
         <Route path="subscription" element={<Subscription />} />
+        <Route path="settings"     element={<Settings />} />
 
         {/* Validation */}
         <Route path="validation">
